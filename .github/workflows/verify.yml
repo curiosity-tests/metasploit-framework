@@ -104,7 +104,11 @@ jobs:
           --health-retries 5
 
     strategy:
-      fail-fast: true
+      # racecar measurement integrity (not a build change): a flaky leg must not
+      # cancel its siblings. The instrumented arm carries strictly more failure
+      # surface than baseline, so fail-fast drops instrumented legs more often
+      # and biases any arm-vs-arm comparison in baseline's favour.
+      fail-fast: false
       matrix:
         ruby:
           - '3.2'
