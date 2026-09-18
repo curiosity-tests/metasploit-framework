@@ -34,27 +34,27 @@ on:
         default: 'master'
   push:
     branches-ignore:
-      - gh-pages
-      - metakitty
+    - gh-pages
+    - metakitty
   pull_request:
     branches:
-      - '*'
+    - '*'
     paths:
-      - 'metasploit-framework.gemspec'
-      - 'Gemfile.lock'
-      - 'data/templates/**'
-      - 'modules/payloads/**'
-      - 'lib/msf/core/payload/**'
-      - 'lib/msf/core/handler/**'
-      - 'lib/msf/core/post/**'
-      - 'lib/msf/core/session/**'
-      - 'lib/msf/base/sessions/**'
-      - 'tools/dev/**'
-      - 'test/modules/post/**'
-      - 'spec/acceptance/**'
-      - 'spec/support/acceptance/**'
-      - 'spec/acceptance_spec_helper.rb'
-      - '.github/**'
+    - 'metasploit-framework.gemspec'
+    - 'Gemfile.lock'
+    - 'data/templates/**'
+    - 'modules/payloads/**'
+    - 'lib/msf/core/payload/**'
+    - 'lib/msf/core/handler/**'
+    - 'lib/msf/core/post/**'
+    - 'lib/msf/core/session/**'
+    - 'lib/msf/base/sessions/**'
+    - 'tools/dev/**'
+    - 'test/modules/post/**'
+    - 'spec/acceptance/**'
+    - 'spec/support/acceptance/**'
+    - 'spec/acceptance_spec_helper.rb'
+    - '.github/**'
 #   Example of running as a cron, to weed out flaky tests
 #  schedule:
 #    - cron: '*/15 * * * *'
@@ -67,27 +67,12 @@ jobs:
       matrix:
         include:
           # Powershell
-          - { command_shell: { name: powershell }, ruby: '3.4', os: windows-2022 }
-          - { command_shell: { name: powershell }, ruby: '3.4', os: windows-2025 }
-
-          # Linux
-          - { command_shell: { name: linux }, ruby: '3.4', os: ubuntu-latest }
-
-          # Python
-          - { command_shell: { name: python }, ruby: '3.4', os: ubuntu-latest }
-
-          # CMD
-          - { command_shell: { name: cmd }, ruby: '3.4', os: windows-2022 }
-
-          # TODO: Tests currently fail:
-          # - { command_shell: { name: cmd }, ruby: '3.4', os: windows-2025 }
-
-          # Python SSL
-          - { command_shell: { name: python_ssl_2_6  }, ruby: '3.4', os: ubuntu-latest }
-          - { command_shell: { name: python_ssl_2_7  }, ruby: '3.4', os: ubuntu-latest }
-          - { command_shell: { name: python_ssl_3_4  }, ruby: '3.4', os: ubuntu-latest }
-          - { command_shell: { name: python_ssl_3_13 }, ruby: '3.4', os: ubuntu-latest }
-
+        - {command_shell: {name: linux}, ruby: '3.4', os: ubuntu-latest}
+        - {command_shell: {name: python}, ruby: '3.4', os: ubuntu-latest}
+        - {command_shell: {name: python_ssl_2_6}, ruby: '3.4', os: ubuntu-latest}
+        - {command_shell: {name: python_ssl_2_7}, ruby: '3.4', os: ubuntu-latest}
+        - {command_shell: {name: python_ssl_3_4}, ruby: '3.4', os: ubuntu-latest}
+        - {command_shell: {name: python_ssl_3_13}, ruby: '3.4', os: ubuntu-latest}
     runs-on: ${{ matrix.os }}
 
     timeout-minutes: 50
@@ -101,68 +86,68 @@ jobs:
 
     name: ${{ matrix.command_shell.name }} ${{ matrix.command_shell.runtime_version }} ${{ matrix.os }}
     steps:
-      - name: Install system dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get -y --no-install-recommends install libpcap-dev graphviz
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt-get -y --no-install-recommends install libpcap-dev graphviz
 
-      - uses: shivammathur/setup-php@fc14643b0a99ee9db10a3c025a33d76544fa3761
-        if: ${{ matrix.command_shell.name == 'php' }}
-        with:
-          php-version: ${{ matrix.command_shell.runtime_version }}
-          tools: none
+    - uses: shivammathur/setup-php@fc14643b0a99ee9db10a3c025a33d76544fa3761
+      if: ${{ matrix.command_shell.name == 'php' }}
+      with:
+        php-version: ${{ matrix.command_shell.runtime_version }}
+        tools: none
 
-      - name: Install system dependencies (Windows)
-        shell: pwsh
-        if: runner.os == 'Windows'
-        run: |
-          $ErrorActionPreference = 'Stop'
-          # pcap dependencies
-          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-          Invoke-WebRequest -Uri 'https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip' -OutFile 'C:\Windows\Temp\WpdPack_4_1_2.zip' -SkipCertificateCheck
-          $expected = 'ea799cf2f26e4afb1892938070fd2b1ca37ce5cf75fec4349247df12b784edbd'
-          $actual = (Get-FileHash 'C:\Windows\Temp\WpdPack_4_1_2.zip' -Algorithm SHA256).Hash.ToLower()
-          if ($actual -ne $expected) { throw "WpdPack_4_1_2.zip SHA256 mismatch: expected $expected, got $actual" }
+    - name: Install system dependencies (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+        $ErrorActionPreference = 'Stop'
+        # pcap dependencies
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri 'https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip' -OutFile 'C:\Windows\Temp\WpdPack_4_1_2.zip' -SkipCertificateCheck
+        $expected = 'ea799cf2f26e4afb1892938070fd2b1ca37ce5cf75fec4349247df12b784edbd'
+        $actual = (Get-FileHash 'C:\Windows\Temp\WpdPack_4_1_2.zip' -Algorithm SHA256).Hash.ToLower()
+        if ($actual -ne $expected) { throw "WpdPack_4_1_2.zip SHA256 mismatch: expected $expected, got $actual" }
 
-          choco install 7zip -y --no-progress
-          if ($LASTEXITCODE -ne 0) { throw "choco install 7zip failed with exit code $LASTEXITCODE" }
+        choco install 7zip -y --no-progress
+        if ($LASTEXITCODE -ne 0) { throw "choco install 7zip failed with exit code $LASTEXITCODE" }
 
-          7z x "C:\Windows\Temp\WpdPack_4_1_2.zip" -o"C:\"
-          if ($LASTEXITCODE -ne 0) { throw "7z extraction failed with exit code $LASTEXITCODE" }
+        7z x "C:\Windows\Temp\WpdPack_4_1_2.zip" -o"C:\"
+        if ($LASTEXITCODE -ne 0) { throw "7z extraction failed with exit code $LASTEXITCODE" }
 
       # The job checkout structure is:
       #  .
       #  └── metasploit-framework
 
-      - name: Checkout metasploit-framework code
-        uses: actions/checkout@v4
-        with:
-          path: metasploit-framework
+    - name: Checkout metasploit-framework code
+      uses: actions/checkout@v4
+      with:
+        path: metasploit-framework
 
       # https://github.com/orgs/community/discussions/26952
-      - name: Support longpaths
-        if: runner.os == 'Windows'
-        run: git config --system core.longpaths true
+    - name: Support longpaths
+      if: runner.os == 'Windows'
+      run: git config --system core.longpaths true
 
-      - name: Setup '${{ matrix.ruby }}' Ruby
+    - name: Setup '${{ matrix.ruby }}' Ruby
         # Skip for now to ensure CI passes on Windows server 2025 powershell tests
         #env:
         #  BUNDLE_FORCE_RUBY_PLATFORM: true
-        uses: ruby/setup-ruby@eaecf785f6a34567a6d97f686bbb7bccc1ac1e5c
-        with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
-          working-directory: metasploit-framework
-          cache-version: 5
-
-      - name: Pull pyenv container image
-        if: startsWith(matrix.command_shell.name, 'python_ssl')
-        run: docker pull rapid7/msf-pyenv@sha256:596c78595c69847661a135890bfb7ed09b7cd3b39fb66699e075f7eea5dc0f09
+      uses: ruby/setup-ruby@eaecf785f6a34567a6d97f686bbb7bccc1ac1e5c
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
         working-directory: metasploit-framework
+        cache-version: 5
 
-      - name: Acceptance
-        env:
-          SPEC_HELPER_LOAD_METASPLOIT: false
-          SPEC_OPTS: "--tag acceptance --require acceptance_spec_helper.rb --color --format documentation --format AllureRspec::RSpecFormatter"
+    - name: Pull pyenv container image
+      if: startsWith(matrix.command_shell.name, 'python_ssl')
+      run: docker pull rapid7/msf-pyenv@sha256:596c78595c69847661a135890bfb7ed09b7cd3b39fb66699e075f7eea5dc0f09
+      working-directory: metasploit-framework
+
+    - name: Acceptance
+      env:
+        SPEC_HELPER_LOAD_METASPLOIT: false
+        SPEC_OPTS: "--tag acceptance --require acceptance_spec_helper.rb --color --format documentation --format AllureRspec::RSpecFormatter"
         # Unix run command:
         #   SPEC_HELPER_LOAD_METASPLOIT=false bundle exec ./spec/acceptance
         # Windows cmd command:
@@ -170,17 +155,17 @@ jobs:
         #   bundle exec rspec .\spec\acceptance
         # Note: rspec retry is intentionally not used, as it can cause issues with allure's reporting
         # Additionally - flakey tests should be fixed or marked as flakey instead of silently retried
-        run: |
-          bundle exec rspec spec/acceptance/command_shell_spec.rb
-        working-directory: metasploit-framework
+      run: |
+        bundle exec rspec spec/acceptance/command_shell_spec.rb
+      working-directory: metasploit-framework
 
-      - name: Archive results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
+    - name: Archive results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
           # Provide a unique artifact for each matrix os, otherwise race conditions can lead to corrupt zips
-          name: raw-data-${{ matrix.command_shell.name }}-${{ matrix.command_shell.runtime_version }}-${{ matrix.os }}
-          path: metasploit-framework/tmp/allure-raw-data
+        name: raw-data-${{ matrix.command_shell.name }}-${{ matrix.command_shell.runtime_version }}-${{ matrix.os }}
+        path: metasploit-framework/tmp/allure-raw-data
 
   # Generate a final report from the previous test results
   report:
@@ -190,55 +175,55 @@ jobs:
     if: always()
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        if: always()
+    - name: Checkout code
+      uses: actions/checkout@v4
+      if: always()
 
-      - name: Install system dependencies (Linux)
-        if: always()
-        run: sudo apt-get -y --no-install-recommends install libpcap-dev graphviz
+    - name: Install system dependencies (Linux)
+      if: always()
+      run: sudo apt-get -y --no-install-recommends install libpcap-dev graphviz
 
       # https://github.com/orgs/community/discussions/26952
-      - name: Support longpaths
-        if: runner.os == 'Windows'
-        run: git config --system core.longpaths true
+    - name: Support longpaths
+      if: runner.os == 'Windows'
+      run: git config --system core.longpaths true
 
-      - name: Setup Ruby
-        if: always()
-        env:
-          BUNDLE_FORCE_RUBY_PLATFORM: true
-        uses: ruby/setup-ruby@v1
-        with:
+    - name: Setup Ruby
+      if: always()
+      env:
+        BUNDLE_FORCE_RUBY_PLATFORM: true
+      uses: ruby/setup-ruby@v1
+      with:
           # use the default version from the .ruby-version file
-          ruby-version: '.ruby-version'
-          bundler-cache: true
-          cache-version: 4
+        ruby-version: '.ruby-version'
+        bundler-cache: true
+        cache-version: 4
 
-      - uses: actions/download-artifact@v4
-        id: download
-        if: always()
-        with:
+    - uses: actions/download-artifact@v4
+      id: download
+      if: always()
+      with:
           # Note: Not specifying a name will download all artifacts from the previous workflow jobs
-          path: raw-data
+        path: raw-data
 
-      - name: allure generate
-        if: always()
-        run: |
-          export VERSION=2.22.1
+    - name: allure generate
+      if: always()
+      run: |
+        export VERSION=2.22.1
 
-          curl -o allure-$VERSION.tgz -Ls https://github.com/allure-framework/allure2/releases/download/$VERSION/allure-$VERSION.tgz
-          tar -zxvf allure-$VERSION.tgz -C .
+        curl -o allure-$VERSION.tgz -Ls https://github.com/allure-framework/allure2/releases/download/$VERSION/allure-$VERSION.tgz
+        tar -zxvf allure-$VERSION.tgz -C .
 
-          ls -la ${{steps.download.outputs.download-path}}
-          ./allure-$VERSION/bin/allure generate ${{steps.download.outputs.download-path}}/* -o ./allure-report
+        ls -la ${{steps.download.outputs.download-path}}
+        ./allure-$VERSION/bin/allure generate ${{steps.download.outputs.download-path}}/* -o ./allure-report
 
-          find ${{steps.download.outputs.download-path}}
-          bundle exec ruby tools/dev/report_generation/support_matrix/generate.rb --allure-data ${{steps.download.outputs.download-path}} > ./allure-report/support_matrix.html
+        find ${{steps.download.outputs.download-path}}
+        bundle exec ruby tools/dev/report_generation/support_matrix/generate.rb --allure-data ${{steps.download.outputs.download-path}} > ./allure-report/support_matrix.html
 
-      - name: archive results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: final-report-${{ github.run_id }}
-          path: |
-            ./allure-report
+    - name: archive results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: final-report-${{ github.run_id }}
+        path: |
+          ./allure-report
